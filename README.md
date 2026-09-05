@@ -12,7 +12,7 @@
 
 ## How this repo works
 
-This is the reference shelf, not the conversation. Everything you need to *start* lives here; everything that happens *during* the challenge — questions, screenshots, war rooms, wins — happens in the **[BITA Discord](https://discord.gg/MZkDZGsq2C)**, in **#kernel-crew**. Not in the server yet? The invite link gets you there, and it's free — everything BITA does is.
+This is the reference shelf, not the conversation. Everything you need to *start* lives here; everything that happens *during* the challenge — questions, screenshots, war rooms, wins — happens in the **BITA Discord**, in **#kernel-crew*. To join the server is free, the challenge is free - just like everything BITA does.
 
 ## Your own repo
 
