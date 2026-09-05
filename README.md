@@ -6,7 +6,7 @@
 
 ## Start here
 
-1. **[SETUP.md](SETUP.md)** — get your Linux server running (cloud VPS or free local VM) *before Day 1*
+1. **[Setup.md](Setup.md)** — get your Linux server running (cloud VPS or free local VM) *before Day 1*
 2. **[MANIFESTO.md](MANIFESTO.md)** — how the whole program works: the rhythm, the check-ins, the Firefight capstone, all of it
 3. **[Lessons](https://linuxupskillchallenge.org)** — the curriculum itself lives on the Linux Upskill Challenge site. Day 1 starts Sept 14
 
