@@ -1,0 +1,80 @@
+#cloud-config
+hostname: ${hostname}
+fqdn: ${hostname}
+preserve_hostname: false
+
+# Everything is done from setup.sh so ordering is explicit: build the lab
+# healthy first, then break it on the way out.
+package_update: false
+
+# setup.sh runs from runcmd (modules-final), after apt_configure rewrites the
+# sources, so this governs its apt-get too. cloud-init probes each mirror in
+# `search` and uses the first that answers - never pin one, a Canonical outage
+# can take archive, security and the ec2 mirrors down together. setup.sh's
+# apt_retry wrapper retries on failure, not on a mirror that hangs.
+apt:
+  primary:
+    - arches: [default]
+      search:
+        - http://us-east-1.ec2.archive.ubuntu.com/ubuntu
+        - http://mirror.math.princeton.edu/pub/ubuntu
+        - http://archive.ubuntu.com/ubuntu
+  security:
+    - arches: [default]
+      search:
+        - http://security.ubuntu.com/ubuntu
+        - http://mirror.math.princeton.edu/pub/ubuntu
+        - http://archive.ubuntu.com/ubuntu
+
+write_files:
+  # Written in init-network, so it governs setup.sh's apt-get later in boot.
+  # Caps the per-backend stall at 8s. No IPv6 in this VPC, but the mirrors
+  # publish AAAA records, so ForceIPv4 saves a dead connect on every fetch.
+  - path: /etc/apt/apt.conf.d/99-bita-apt-timeouts
+    permissions: '0644'
+    content: |
+      Acquire::http::Timeout "8";
+      Acquire::https::Timeout "8";
+      Acquire::Retries "3";
+      Acquire::ForceIPv4 "true";
+
+  - path: /opt/bita/lab.env
+    permissions: '0600'
+    owner: 'root:root'
+    content: |
+      ADMIN_USER='${admin_user}'
+      ADMIN_PASS='${admin_pass}'
+      LAB_USER='${lab_user}'
+      LAB_PASS='${lab_pass}'
+      LAB_MARKER='${lab_marker}'
+      NONCRIT_SERVICE='${noncrit_service}'
+      LAB_HOSTNAME='${hostname}'
+
+  - path: /opt/bita/setup.sh
+    permissions: '0700'
+    owner: 'root:root'
+    content: |
+      ${indent(6, setup_sh)}
+
+  - path: /opt/bita/break-lab.sh
+    permissions: '0700'
+    owner: 'root:root'
+    content: |
+      ${indent(6, break_sh)}
+
+  # 0700: the source still names the faults in its evidence strings, so it is
+  # root-only. The service runs as root and bita-check sudo's to root.
+  - path: /opt/bita/health_check.py
+    permissions: '0700'
+    owner: 'root:root'
+    content: |
+      ${indent(6, health_py)}
+
+  - path: /etc/motd
+    permissions: '0644'
+    owner: 'root:root'
+    content: |
+      ${indent(6, motd)}
+
+runcmd:
+  - [ bash, -c, "/opt/bita/setup.sh >> /var/log/bita-setup.log 2>&1" ]

@@ -1,0 +1,65 @@
+# ---------------------------------------------------------------------------
+# Copy this file to terraform.tfvars and edit it.
+#
+#     cp terraform.tfvars.example terraform.tfvars
+#
+# terraform.tfvars is gitignored on purpose: it pins YOUR source IP and YOUR
+# public key. Never commit it.
+#
+# Every value below has a working default in variables.tf. The only variable
+# with no default is instance_count, which Terraform prompts for at apply
+# time - leave it unset here so you are asked each run.
+#
+# Addresses shown are RFC 5737 documentation placeholders. Replace them.
+# ---------------------------------------------------------------------------
+
+# --- AWS ---------------------------------------------------------------------
+# aws_profile is the named profile in ~/.aws/credentials that Terraform should
+# use. Replace the placeholder with yours, or delete the line to fall back to
+# the "default" profile. List what you have with: aws configure list-profiles
+aws_region  = "us-east-1"
+aws_profile = "your-aws-profile"
+
+# --- Cohort size -------------------------------------------------------------
+# One box per student, 1-25. Left commented so terraform asks interactively.
+# instance_count = 5
+
+# --- Instance sizing ---------------------------------------------------------
+# instance_type     = "t3.micro"
+# vpn_instance_type = "t3.micro"
+
+# --- Break-glass admin access ------------------------------------------------
+# SSH straight to the VPN host, independent of the tunnel. Without this, a VPN
+# that fails to come up leaves you with no path to any box (the lab instances
+# have no public IP) and destroy/rebuild as your only option.
+#
+#     ssh ubuntu@<vpn public ip>
+#
+# Find your current public address with:
+#
+#     curl -s https://checkip.amazonaws.com
+#
+# NOTE: your public IP changes when your ISP/DHCP lease rotates or you switch
+# networks. If SSH to the VPN host suddenly times out, re-run the curl above,
+# update admin_ssh_cidrs, and `terraform apply` again.
+#
+# Leave both empty (the default) to disable break-glass access entirely.
+#
+# admin_ssh_cidrs      = ["203.0.113.10/32"]
+# admin_ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... you@example.com"
+
+# --- VPN listener source restriction -----------------------------------------
+# Defaults to 0.0.0.0/0 on purpose: students connect from unknown networks.
+#
+# For a SOLO TEST RUN you can lock UDP 1194 to just yourself by uncommenting
+# this. You MUST comment it out again before handing .ovpn files to a cohort,
+# or every student outside your network will fail to connect.
+#
+# vpn_allowed_source_cidrs = ["203.0.113.10/32"]
+
+# --- Lab tuning --------------------------------------------------------------
+# Ubuntu 22.04 instead of the default 24.04:
+# ubuntu_ami_name_filter = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+
+# The non-critical service students must stop AND disable (fault 4):
+# noncritical_service = "atd"
