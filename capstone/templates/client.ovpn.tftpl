@@ -1,0 +1,32 @@
+##############################################################################
+# BITA Capstone lab VPN profile
+#
+#   Linux / macOS : sudo openvpn --config bita-capstone.ovpn
+#   Windows       : import this file into the OpenVPN GUI, then Connect
+#
+# Split tunnel - only the lab network is routed over the VPN.
+##############################################################################
+client
+dev tun
+proto udp
+remote ${remote_host} ${vpn_port}
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+remote-cert-tls server
+data-ciphers AES-256-GCM:AES-128-GCM
+auth SHA256
+verb 3
+
+<ca>
+${ca_cert}
+</ca>
+
+<cert>
+${client_cert}
+</cert>
+
+<key>
+${client_key}
+</key>

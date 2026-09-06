@@ -1,0 +1,42 @@
+  ####  BITA CAPSTONE  -  Linux troubleshooting lab  ####
+
+  This box is deliberately broken in four places. Your job is to find and
+  fix them using logs and system state - not by rebuilding anything.
+
+    1.  The user 'bita-user' cannot log in over SSH, even though the
+        password you were given is correct.
+
+    2.  A web site that should be served on port 8081 is not coming up.
+
+    3.  'sudo apt install <anything>' fails.
+
+    4.  The service '${noncrit_service}' is running and set to start on
+        boot. This box does not need it - stop it now AND stop it from
+        starting again after a reboot.
+
+  Those are the symptoms. Working out the cause of each one is the exercise -
+  nothing here, and nothing on the health page, will tell you where to look.
+
+  GRADE YOUR OWN WORK - live, no waiting:
+
+    In a browser over the VPN :  http://<this-box>:8080
+    Or straight from this shell:  bita-check
+
+    Green check = fixed. Red X = still broken. The page re-grades on every
+    refresh (5s). It reports symptoms only. Screenshot it once everything
+    is green.
+
+  WHERE TO LOOK - general tools, not answers:
+
+    sudo tail -f /var/log/auth.log          # watch a failure as you cause it
+    systemctl status <unit>                 # why a service will not start
+    sudo journalctl -xeu <unit>             # the full story for that unit
+    ls -l  /  stat -c '%A %U:%G %n' <path>  # what the permissions really are
+    sudo ss -lntp                           # what is listening, and as whom
+
+    The habit that matters: reproduce the failure while tailing the log that
+    covers it. A log line written the moment it broke beats an hour of guessing.
+
+  See this briefing again:       cat /etc/motd
+  Reset the lab back to broken:  sudo /opt/bita/break-lab.sh
+  Provisioning log:              /var/log/bita-setup.log

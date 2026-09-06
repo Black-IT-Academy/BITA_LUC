@@ -1,0 +1,159 @@
+#cloud-config
+hostname: bita-vpn
+fqdn: bita-vpn
+preserve_hostname: false
+
+# cloud-init probes each mirror in `search` and uses the first that answers.
+# Never pin a single one: a Canonical archive outage took out archive.ubuntu.com
+# AND security.ubuntu.com AND every us-east-1.ec2 backend at once, which stalls
+# apt-get update for 30+ minutes - and the VPN is unreachable the whole time,
+# because runcmd enables openvpn only after packages install. Regional mirror
+# first (fastest from EC2), an independent mirror second, Canonical last.
+# Packages stay GPG-verified against the Ubuntu keyring whoever serves them.
+apt:
+  primary:
+    - arches: [default]
+      search:
+        - http://us-east-1.ec2.archive.ubuntu.com/ubuntu
+        - http://mirror.math.princeton.edu/pub/ubuntu
+        - http://archive.ubuntu.com/ubuntu
+  security:
+    - arches: [default]
+      search:
+        - http://security.ubuntu.com/ubuntu
+        - http://mirror.math.princeton.edu/pub/ubuntu
+        - http://archive.ubuntu.com/ubuntu
+
+package_update: true
+packages:
+  - openvpn
+  - iptables
+
+write_files:
+  # write_files runs in init-network, ahead of both apt_configure
+  # (modules-config) and the package install (modules-final), so this governs
+  # cloud-init's own apt run. Caps the per-backend stall at 8s instead of ~30s.
+  - path: /etc/apt/apt.conf.d/99-bita-apt-timeouts
+    permissions: '0644'
+    content: |
+      Acquire::http::Timeout "8";
+      Acquire::https::Timeout "8";
+      Acquire::Retries "3";
+      # This VPC has no IPv6, but the mirrors publish AAAA records - without
+      # this, every fetch burns a connect attempt on an unreachable address.
+      Acquire::ForceIPv4 "true";
+
+  - path: /etc/openvpn/server/ca.crt
+    permissions: '0644'
+    content: |
+      ${indent(6, ca_cert)}
+
+  - path: /etc/openvpn/server/server.crt
+    permissions: '0644'
+    content: |
+      ${indent(6, server_cert)}
+
+  - path: /etc/openvpn/server/server.key
+    permissions: '0600'
+    content: |
+      ${indent(6, server_key)}
+
+  - path: /etc/openvpn/server/server.conf
+    permissions: '0644'
+    content: |
+      port ${vpn_port}
+      proto udp
+      dev tun
+      topology subnet
+
+      ca   /etc/openvpn/server/ca.crt
+      cert /etc/openvpn/server/server.crt
+      key  /etc/openvpn/server/server.key
+      dh none
+
+      server ${vpn_client_cidr_ip} ${vpn_client_netmask}
+
+      # Every student is handed the same .ovpn, so every session presents the
+      # same common name. OpenVPN's default is one session per CN: a second
+      # student connecting silently evicts the first, who keeps a dead tunnel
+      # until ping-restart fires 120s later and reconnects - evicting student
+      # two in turn. Two people online is a permanent ~4 minute flap.
+      duplicate-cn
+
+      # ifconfig-pool-persist is deliberately absent. That file is keyed on the
+      # common name, which duplicate-cn makes non-unique, so it would try to
+      # hand every student the same address. The pool (10.8.0.2-10.8.0.254)
+      # is far larger than the 25-instance ceiling, so leases need not persist.
+
+      # Split tunnel: only the lab subnet is pushed, the student's normal
+      # internet traffic is untouched.
+      push "route ${private_subnet_ip} ${private_subnet_mask}"
+
+      keepalive 10 120
+      data-ciphers AES-256-GCM:AES-128-GCM
+      auth SHA256
+      persist-key
+      persist-tun
+      user nobody
+      group nogroup
+      explicit-exit-notify 1
+      status /var/log/openvpn/status.log
+      log-append /var/log/openvpn/openvpn.log
+      verb 3
+
+  - path: /usr/local/sbin/bita-nat.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      # Turn this host into the NAT router for the private lab subnet and the
+      # OpenVPN client pool. Idempotent, re-run safe, runs again on every boot.
+      set -u
+      sysctl -w net.ipv4.ip_forward=1 >/dev/null
+      IFACE=$(ip -o -4 route show to default | awk '{print $5}' | head -1)
+      [ -z "$IFACE" ] && exit 1
+      for NET in ${private_subnet_cidr} ${vpn_client_cidr}; do
+        iptables -t nat -C POSTROUTING -s "$NET" -o "$IFACE" -j MASQUERADE 2>/dev/null \
+          || iptables -t nat -A POSTROUTING -s "$NET" -o "$IFACE" -j MASQUERADE
+      done
+      iptables -C FORWARD -s ${vpn_client_cidr} -j ACCEPT 2>/dev/null \
+        || iptables -I FORWARD 1 -s ${vpn_client_cidr} -j ACCEPT
+      iptables -C FORWARD -s ${private_subnet_cidr} -j ACCEPT 2>/dev/null \
+        || iptables -I FORWARD 1 -s ${private_subnet_cidr} -j ACCEPT
+      iptables -C FORWARD -d ${private_subnet_cidr} -j ACCEPT 2>/dev/null \
+        || iptables -I FORWARD 1 -d ${private_subnet_cidr} -j ACCEPT
+      exit 0
+
+  - path: /etc/systemd/system/bita-nat.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=BITA lab NAT rules
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/usr/local/sbin/bita-nat.sh
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /etc/sysctl.d/99-bita-forward.conf
+    permissions: '0644'
+    content: |
+      net.ipv4.ip_forward=1
+
+bootcmd:
+  # bootcmd runs before write_files, so the NAT rules are inlined here as a
+  # safety net: the lab instances may start apt'ing through us before this
+  # host finishes installing openvpn and reaches runcmd.
+  - [ sh, -c, "sysctl -w net.ipv4.ip_forward=1" ]
+  - [ sh, -c, "IF=$(ip -o -4 route show to default | awk '{print $5}' | head -1); iptables -t nat -C POSTROUTING -s ${private_subnet_cidr} -o $IF -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -s ${private_subnet_cidr} -o $IF -j MASQUERADE" ]
+
+runcmd:
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, --now, bita-nat.service ]
+  - [ mkdir, -p, /var/log/openvpn ]
+  - [ systemctl, enable, --now, "openvpn-server@server.service" ]
+  - [ sh, -c, "systemctl is-active openvpn-server@server >/tmp/bita-vpn-status 2>&1 || true" ]
