@@ -9,6 +9,7 @@
 1. **[Setup.md](Setup.md)** — get your Linux server running (cloud VPS or free local VM) *before Day 1*
 2. **[Manifesto.md](Manifesto.md)** — how the whole program works: the rhythm, the check-ins, the Firefight capstone, all of it
 3. **[Lessons](https://linuxupskillchallenge.org)** — the curriculum itself lives on the Linux Upskill Challenge site. Day 1 starts Sept 14
+4. **[capstone/](capstone/)** — the Terraform that builds the Firefight environment. For the volunteers who run a cohort; as a participant you're handed a VPN profile and never touch this
 
 ## How this repo works
 

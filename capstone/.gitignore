@@ -1,0 +1,28 @@
+# Terraform working files
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+.terraformrc
+terraform.rc
+
+# State contains the VPN private keys and every student password. Never commit.
+*.tfstate
+*.tfstate.*
+
+# Pins your source IP and your public key.
+terraform.tfvars
+
+# Per-run secrets: the VPN profile and the student credential sheet.
+generated/*
+!generated/.gitkeep
+
+# Stray bytecode from editing files/health_check.py
+__pycache__/
+*.pyc
+
+# The instructor answer key. Kept out of the repo on purpose - it gives away
+# every fault. Distributed to volunteers running a cohort, not published here.
+docs/WALKTHROUGH.md
