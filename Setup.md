@@ -2,25 +2,26 @@
 
 **Goal:** by the end of this page you have a Linux server you can log into, and you've posted your first screenshot in #kernel-crew. That's it. That's Day 0.
 
-We'll do this together live on the **Saturday, Sept 12 kickoff call (12PM ET)** — but if you knock it out early, even better. It's OK if this takes you a minute; the lessons aren't going anywhere.
+We'll do this together live on the **kickoff call** (Cohort 1: Saturday, Sept 12, 12PM ET) — but if you knock it out early, even better.
 
 ---
 
-## First: pick your path (30 seconds)
+## The path: keep it simple
 
 | You | Your path |
 |---|---|
-| Want the real deal — a server on the actual internet, like the job | **Path A: DigitalOcean** (~$6 total for the month) |
-| Want to spend $0 | **Path B: free VM on your own computer** |
-| Not sure you're in yet, just want to peek | **Path C: free browser server** (zero setup) |
+| Ready to ride (recommended for almost everyone) | **Path A: DigitalOcean** — a real server on the real internet, ~$6 total for the month |
+| Spending $0 right now | **Path B: Killercoda** — a free Linux server in your browser, zero install |
 
-All three run the same Ubuntu, and the lessons work the same. Path A is what most people who *finish* the challenge use — there's something about a real server with a real IP that makes it real. But a $0 path is a real path. **Pick one and move.** Don't spend Day 0 comparing hosting providers — that's a trap.
+That's it. Two doors, both open, both get you to Lesson 1 on Monday. **Pick one and move** — comparing hosting providers on Day 0 is a trap.
 
-> The challenge's own [Day 0 page](https://linuxupskillchallenge.org/00/) has deeper detail on every option, including AWS/Azure if you already have credits there. This guide is the short version.
+> Comfortable running your own virtual machines, or have a specific reason you can't use the cloud? There's a third door for you: **[SETUP-VM.md](SETUP-VM.md)**. If you just read that sentence and thought "what's a hypervisor?" — that door is not for you, and that's by design. Paths A and B exist so your first week is spent learning Linux, not debugging your laptop.
 
 ---
 
 ## Path A — DigitalOcean VPS (recommended, ~$6 for the month)
+
+There's something about a real server with a real IP address that makes this real. This is the path most people who *finish* the challenge take.
 
 1. **Create an account** at [digitalocean.com](https://www.digitalocean.com) (new accounts usually get free credit — take it)
 2. **Create a Droplet** (their word for a server): big green **Create** button → **Droplets**
@@ -45,41 +46,27 @@ All three run the same Ubuntu, and the lessons work the same. Path A is what mos
    ```
 8. **💰 Cost control, do this now:** in DigitalOcean → Settings → Billing, add a billing alert at $10. When the challenge ends and you're done with the box, **Destroy** the droplet (not just power off — destroyed = no more charges). ~$6 total, in and out.
 
-**Windows note:** if `ssh` isn't found in PowerShell, install [Windows Terminal](https://aka.ms/terminal) from the Microsoft Store, or use it as your excuse to come to the kickoff call and we'll sort it live.
+**Windows note:** if `ssh` isn't found in PowerShell, install [Windows Terminal](https://aka.ms/terminal) from the Microsoft Store — or bring it to the kickoff call and we'll sort it live.
 
 ---
 
-## Path B — Free local VM ($0)
+## Path B — Killercoda, free in your browser ($0, zero install)
 
-Your computer hosts a little Linux server inside itself. Two good ways:
+[Killercoda's Linux Upskill Challenge scenario](https://killercoda.com/linux-upskill-challenge) hands you an Ubuntu server *in your browser tab*, ready in seconds. Nothing to install, nothing to configure, nothing on your machine to break.
 
-**Option B1 — Multipass (easiest, Mac/Windows/Linux):**
-1. Install from [multipass.run](https://multipass.run)
-2. In Terminal/PowerShell:
-   ```
-   multipass launch --name kernelcrew
-   multipass shell kernelcrew
-   ```
-3. That's it — you're at an Ubuntu prompt. Run the same `whoami` / `uptime` / `sudo apt update` proof-of-life as Path A.
+Straight talk on the trade-offs:
+- ✅ Works for every lesson **except Day 12**
+- ✅ Genuinely $0, forever, start in under a minute
+- ⚠️ Sessions **reset** — the server doesn't persist between sittings, so you won't have one box you harden and love all month
+- ⚠️ For the Firefight capstone you'll connect to a cohort-provided server anyway, so this doesn't block you from graduating
 
-**Option B2 — VirtualBox (the classic, more clicks):**
-1. Install [VirtualBox](https://www.virtualbox.org) + download the [Ubuntu Server ISO](https://ubuntu.com/download/server)
-2. New VM → 2GB RAM, 20GB disk → boot the ISO → accept defaults through the installer (including "Install OpenSSH server" when offered)
-3. LUC's own [local server guide](https://linuxupskillchallenge.org/00-Local-Server/) covers this click-by-click, with a video
-
-**Windows-only Option B3 — WSL:** already comfortable with WSL? It works for the lessons. It's the least "real server" of the options (some networking lessons feel different), so if you're starting fresh, B1 over B3.
-
----
-
-## Path C — Zero-setup browser server (free, no account drama)
-
-[Killercoda's LUC scenario](https://killercoda.com/linux-upskill-challenge) gives you an Ubuntu server *in your browser*, ready in seconds. Every lesson works except Day 12. The catch: it resets — nothing persists between sessions, and there's no server of *yours* to harden and love. Great for "let me see what this is about," or as a backup when you're away from your machine. If you're in for the full ride, graduate to Path A or B.
+If money's the only thing between you and starting Monday: this is your door, walk through it proudly. You can always graduate to a $6 droplet mid-challenge — several people do exactly that once they're hooked.
 
 ---
 
 ## ✅ You're ready when…
 
-- [ ] You can log into your server and run `whoami`, `uptime`, and `sudo apt update` without errors
+- [ ] You can log into your server and run `whoami`, `uptime`, and `sudo apt update` without errors *(on Killercoda you're already logged in — just run them)*
 - [ ] **You've posted a screenshot of it in #kernel-crew.** Yes, really. That's your first weekly screenshot, and it tells the coaches you're mission-ready. Boring terminal screenshots are our love language.
 
 ---
@@ -97,7 +84,7 @@ This is your receipts repo — and later, your ticket into the Firefight.
    BITA Kernel Crew · Cohort 1 · Sept 2026
 
    ## Day 0
-   - Set up my server (Path A/B/C) — it's alive 🐧
+   - Set up my server (DigitalOcean / Killercoda) — it's alive 🐧
    - Problems I hit and how I fixed them:
    ```
 4. Commit, then **drop your repo link in #kernel-crew**
@@ -108,4 +95,4 @@ Every day after a lesson, add a few lines: what you did, anything that broke, ho
 
 ## Stuck anywhere on this page?
 
-Say so in **#kernel-crew** — someone's stuck on the same step, guaranteed. Or pull up to a war room, or bring it Saturday. Stuck is not behind. Stuck out loud is literally the program working.
+Say so in **#kernel-crew** — someone's stuck on the same step, guaranteed. Or pull up to a war room, or bring it to the kickoff call. Stuck is not behind. Stuck out loud is literally the program working.
